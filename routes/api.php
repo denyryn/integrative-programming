@@ -7,5 +7,4 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::resource('posts', App\Http\Controllers\PostController::class)
-    ->only(['index', 'store', 'show', 'update']);
+Route::resource('posts', App\Http\Controllers\PostController::class);
