@@ -4,6 +4,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,12 +14,39 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+
+        $exceptions->render(function (Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, $request) {
+            return response()->json([
+                'message' => 'Route not found',
+            ], 404);
+        });
+
         $exceptions->render(function (ModelNotFoundException $e, $request) {
             return response()->json([
                 'message' => 'Resource not found',
             ], 404);
         });
+
+        $exceptions->render(function (Illuminate\Auth\Access\AuthorizationException $e, $request) {
+            return response()->json([
+                'message' => 'Forbidden'
+            ], 403);
+        });
+
+        $exceptions->render(function (Illuminate\Validation\ValidationException $e, $request) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        });
+
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
+            return response()->json([
+                'message' => 'Unauthenticated'
+            ], 401);
+        });
+
     })->create();
