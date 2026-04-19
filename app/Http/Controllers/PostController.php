@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
 use Illuminate\Http\Request;
 
@@ -26,9 +28,10 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StorePostRequest $request)
     {
-        $post = Post::create($request->all());
+        $validated = $request->validated();
+        $post = auth()->user()->posts()->create($validated);
         return response()->json($post);
     }
 
@@ -57,7 +60,7 @@ class PostController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdatePostRequest $request, string $id)
     {
         $post = Post::find($id);
 
@@ -65,7 +68,8 @@ class PostController extends Controller
             return response()->json(['message' => 'Post not found'], 404);
         }
 
-        $post->update($request->all());
+        $validated = $request->validated();
+        $post->update($validated);
         return response()->json($post);
     }
 
