@@ -14,7 +14,8 @@ class CommentController extends Controller
      */
     public function index()
     {
-        return response()->json(Comment::all());
+        $comments = auth()->user()->comments()->get();
+        return response()->json($comments);
     }
 
     /**

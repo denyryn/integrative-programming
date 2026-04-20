@@ -12,9 +12,10 @@ class PostController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Post $post)
+    public function index()
     {
-        return response()->json($post->all());
+        $posts = auth()->user()->posts()->get();
+        return response()->json($posts);
     }
 
     /**
