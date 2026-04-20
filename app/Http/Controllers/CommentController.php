@@ -2,20 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\ApiResponseTrait;
 use App\Http\Requests\StoreCommentRequest;
 use App\Http\Requests\UpdateCommentRequest;
 use App\Models\Comment;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class CommentController extends Controller
 {
+    use ApiResponseTrait, AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         $comments = auth()->user()->comments()->get();
-        return response()->json($comments);
+        return $this->successResponse(
+            $comments,
+            'Comments retrieved successfully',
+            Response::HTTP_OK
+        );
     }
 
     /**
@@ -33,21 +42,24 @@ class CommentController extends Controller
     {
         $validated = $request->validated();
         $comment = auth()->user()->comments()->create($validated);
-        return response()->json($comment);
+        return $this->successResponse(
+            $comment,
+            'Comment created successfully',
+            Response::HTTP_CREATED
+        );
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Comment $comment)
     {
-        $comment = Comment::find($id);
-
-        if (!$comment) {
-            return response()->json(['message' => 'Comment not found'], 404);
-        }
-
-        return response()->json($comment);
+        $this->authorize('view', $comment);
+        return $this->successResponse(
+            $comment,
+            'Comment retrieved successfully',
+            Response::HTTP_OK
+        );
     }
 
     /**
@@ -61,31 +73,29 @@ class CommentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCommentRequest $request, string $id)
+    public function update(UpdateCommentRequest $request, Comment $comment)
     {
-        $comment = Comment::find($id);
-
-        if (!$comment) {
-            return response()->json(['message' => 'Comment not found'], 404);
-        }
-
+        $this->authorize('update', $comment);
         $validated = $request->validated();
         $comment->update($validated);
-        return response()->json($comment);
+        return $this->successResponse(
+            $comment,
+            'Comment updated successfully',
+            Response::HTTP_OK
+        );
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Comment $comment)
     {
-        $comment = Comment::find($id);
-
-        if (!$comment) {
-            return response()->json(['message' => 'Comment not found'], 404);
-        }
-
+        $this->authorize('delete', $comment);
         $comment->delete();
-        return response()->json(['id' => $comment->id, 'deleted' => 'true']);
+        return $this->successResponse(
+            null,
+            'Comment deleted successfully',
+            Response::HTTP_NO_CONTENT
+        );
     }
 }

@@ -2,20 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use App\ApiResponseTrait;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class PostController extends Controller
 {
+
+    use ApiResponseTrait, AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         $posts = auth()->user()->posts()->get();
-        return response()->json($posts);
+        return $this->successResponse(
+            $posts,
+            'Posts retrieved successfully',
+            Response::HTTP_OK
+        );
     }
 
     /**
@@ -33,21 +43,24 @@ class PostController extends Controller
     {
         $validated = $request->validated();
         $post = auth()->user()->posts()->create($validated);
-        return response()->json($post);
+        return $this->successResponse(
+            $post,
+            'Post created successfully',
+            Response::HTTP_CREATED
+        );
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Post $post)
     {
-        $post = Post::find($id);
-
-        if (!$post) {
-            return response()->json(['message' => 'Post not found'], 404);
-        }
-
-        return response()->json($post);
+        $this->authorize('view', $post);
+        return $this->successResponse(
+            $post,
+            'Post retrieved successfully',
+            Response::HTTP_OK
+        );
     }
 
     /**
@@ -61,31 +74,29 @@ class PostController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePostRequest $request, string $id)
+    public function update(UpdatePostRequest $request, Post $post)
     {
-        $post = Post::find($id);
-
-        if (!$post) {
-            return response()->json(['message' => 'Post not found'], 404);
-        }
-
+        $this->authorize('update', $post);
         $validated = $request->validated();
         $post->update($validated);
-        return response()->json($post);
+        return $this->successResponse(
+            $post,
+            'Post updated successfully',
+            Response::HTTP_OK
+        );
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Post $post)
     {
-        $post = Post::find($id);
-
-        if (!$post) {
-            return response()->json(['message' => 'Post not found'], 404);
-        }
-
+        $this->authorize('delete', $post);
         $post->delete();
-        return response()->json(['id' => $post->id, 'deleted' => 'true']);
+        return $this->successResponse(
+            null,
+            'Post deleted successfully',
+            Response::HTTP_NO_CONTENT
+        );
     }
 }

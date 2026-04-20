@@ -2,29 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use App\ApiResponseTrait;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
+    use ApiResponseTrait;
+
     public function login(LoginRequest $request)
     {
         $credentials = $request->validated();
 
-        if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
         $request->session()->regenerate();
 
-        return response()->json([
-            'message' => 'Login successful',
-            'user' => Auth::user()
-        ]);
+        return $this->successResponse(
+            auth()->user(),
+            'Logged in successfully',
+            Response::HTTP_OK
+        );
     }
 
     public function logout(Request $request)
@@ -34,9 +35,11 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return response()->json([
-            'message' => 'Logged out'
-        ]);
+        return $this->successResponse(
+            null,
+            'Logged out successfully',
+            Response::HTTP_NO_CONTENT
+        );
     }
 
     public function register(RegisterRequest $request)
@@ -45,9 +48,10 @@ class AuthController extends Controller
 
         $user = \App\Models\User::create($validated);
 
-        return response()->json([
-            'message' => 'User registered successfully',
-            'user' => $user
-        ]);
+        return $this->successResponse(
+            $user,
+            'User registered successfully',
+            Response::HTTP_CREATED
+        );
     }
 }
