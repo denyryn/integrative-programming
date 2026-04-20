@@ -38,9 +38,14 @@ class CommentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Comment $comment, string $id)
+    public function show(string $id)
     {
         $comment = Comment::find($id);
+
+        if (!$comment) {
+            return response()->json(['message' => 'Comment not found'], 404);
+        }
+
         return response()->json($comment);
     }
 
@@ -55,7 +60,7 @@ class CommentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCommentRequest $request, Comment $comment, string $id)
+    public function update(UpdateCommentRequest $request, string $id)
     {
         $comment = Comment::find($id);
 
