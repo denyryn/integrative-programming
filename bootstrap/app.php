@@ -17,10 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
-        $exceptions->shouldRenderJsonWhen(fn($request, $e) => $request->is('api/*'));
+        $exceptions->shouldRenderJsonWhen(fn($request, $e) => $request->is('api/*', 'auth/*'));
 
         $exceptions->respond(function ($response, $e, $request) {
-            if ($request->is('api/*')) {
+            if ($request->is('api/*', 'auth/*')) {
                 // Mapping specific exception types to custom messages
                 $message = match (true) {
                     $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException => 'Resource not found',
