@@ -20,9 +20,9 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = auth()->user()->posts()->get();
+        $posts = Post::paginate(5);
         return $this->successResponse(
-            $posts,
+            \App\Http\Resources\PostResource::collection($posts)->response()->getData(true),
             'Posts retrieved successfully',
             Response::HTTP_OK
         );
@@ -44,7 +44,7 @@ class PostController extends Controller
         $validated = $request->validated();
         $post = auth()->user()->posts()->create($validated);
         return $this->successResponse(
-            $post,
+            \App\Http\Resources\PostResource::make($post),
             'Post created successfully',
             Response::HTTP_CREATED
         );
@@ -57,7 +57,7 @@ class PostController extends Controller
     {
         $this->authorize('view', $post);
         return $this->successResponse(
-            $post,
+            \App\Http\Resources\PostResource::make($post),
             'Post retrieved successfully',
             Response::HTTP_OK
         );
@@ -80,7 +80,7 @@ class PostController extends Controller
         $validated = $request->validated();
         $post->update($validated);
         return $this->successResponse(
-            $post,
+            \App\Http\Resources\PostResource::make($post),
             'Post updated successfully',
             Response::HTTP_OK
         );

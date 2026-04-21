@@ -19,9 +19,9 @@ class CommentController extends Controller
      */
     public function index()
     {
-        $comments = auth()->user()->comments()->get();
+        $comments = Comment::paginate(5);
         return $this->successResponse(
-            $comments,
+            \App\Http\Resources\CommentResource::collection($comments)->response()->getData(true),
             'Comments retrieved successfully',
             Response::HTTP_OK
         );
@@ -43,7 +43,7 @@ class CommentController extends Controller
         $validated = $request->validated();
         $comment = auth()->user()->comments()->create($validated);
         return $this->successResponse(
-            $comment,
+            \App\Http\Resources\CommentResource::make($comment),
             'Comment created successfully',
             Response::HTTP_CREATED
         );
@@ -56,7 +56,7 @@ class CommentController extends Controller
     {
         $this->authorize('view', $comment);
         return $this->successResponse(
-            $comment,
+            \App\Http\Resources\CommentResource::make($comment),
             'Comment retrieved successfully',
             Response::HTTP_OK
         );
@@ -79,7 +79,7 @@ class CommentController extends Controller
         $validated = $request->validated();
         $comment->update($validated);
         return $this->successResponse(
-            $comment,
+            \App\Http\Resources\CommentResource::make($comment),
             'Comment updated successfully',
             Response::HTTP_OK
         );
