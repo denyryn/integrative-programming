@@ -19,6 +19,8 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
 
+        Auth::attempt($credentials);
+
         $request->session()->regenerate();
 
         return $this->successResponse(
