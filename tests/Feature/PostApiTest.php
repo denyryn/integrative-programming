@@ -40,11 +40,11 @@ test('Posts endpoints require authentication', function (string $method, string 
             'errors' => null,
         ]);
 })->with([
-            'index' => ['GET', '/api/posts', null],
-            'store' => ['POST', '/api/posts', ['title' => 'X']],
-            'show' => ['GET', '/api/posts/{post}', null],
-            'update' => ['PUT', '/api/posts/{post}', ['title' => 'Updated']],
-            'destroy' => ['DELETE', '/api/posts/{post}', null],
+            'index' => ['GET', '/api/v1/posts', null],
+            'store' => ['POST', '/api/v1/posts', ['title' => 'X']],
+            'show' => ['GET', '/api/v1/posts/{post}', null],
+            'update' => ['PUT', '/api/v1/posts/{post}', ['title' => 'Updated']],
+            'destroy' => ['DELETE', '/api/v1/posts/{post}', null],
         ]);
 
 test('Authenticated user can list posts (paginated)', function () {
@@ -55,7 +55,7 @@ test('Authenticated user can list posts (paginated)', function () {
         createPostForUser($user, ['title' => "Post {$i}"]);
     }
 
-    $this->getJson('/api/posts')
+    $this->getJson('/api/v1/posts')
         ->assertOk()
         ->assertJson([
             'success' => true,
@@ -78,7 +78,7 @@ test('Authenticated user can create a post', function () {
         'status' => 'published',
     ]);
 
-    $this->postJson('/api/posts', $payload)
+    $this->postJson('/api/v1/posts', $payload)
         ->assertCreated()
         ->assertJson([
             'success' => true,
@@ -98,7 +98,7 @@ test('Authenticated user can create a post', function () {
 test('Create post validates input', function (array $payload, array $errorKeys) {
     Sanctum::actingAs(User::factory()->create());
 
-    $this->postJson('/api/posts', $payload)
+    $this->postJson('/api/v1/posts', $payload)
         ->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
         ->assertJson([
             'success' => false,
@@ -135,7 +135,7 @@ test('Create post cannot assign another user_id', function () {
 
     Sanctum::actingAs($user);
 
-    $this->postJson('/api/posts', validPostPayload([
+    $this->postJson('/api/v1/posts', validPostPayload([
         'user_id' => $otherUser->id,
         'title' => 'Ownership Test',
     ]))
@@ -153,7 +153,7 @@ test('Authenticated user can view a post', function () {
 
     $post = createPostForUser($user, ['title' => 'View Me']);
 
-    $this->getJson("/api/posts/{$post->id}")
+    $this->getJson("/api/v1/posts/{$post->id}")
         ->assertOk()
         ->assertJson([
             'success' => true,
@@ -168,7 +168,7 @@ test('Authenticated user can view a post', function () {
 test('Viewing a missing post returns a not found response', function () {
     Sanctum::actingAs(User::factory()->create());
 
-    $this->getJson('/api/posts/999999')
+    $this->getJson('/api/v1/posts/999999')
         ->assertNotFound()
         ->assertJson([
             'success' => false,
@@ -184,7 +184,7 @@ test('Post owner can update a post', function () {
 
     $post = createPostForUser($user, ['title' => 'Old Title']);
 
-    $this->putJson("/api/posts/{$post->id}", [
+    $this->putJson("/api/v1/posts/{$post->id}", [
         'title' => 'New Title',
     ])
         ->assertOk()
@@ -207,7 +207,7 @@ test('Update validates input', function () {
     Sanctum::actingAs($user);
     $post = createPostForUser($user);
 
-    $this->putJson("/api/posts/{$post->id}", ['status' => 'invalid'])
+    $this->putJson("/api/v1/posts/{$post->id}", ['status' => 'invalid'])
         ->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
         ->assertJson([
             'success' => false,
@@ -227,7 +227,7 @@ test('Non-owner cannot update a post', function () {
 
     Sanctum::actingAs($nonOwner);
 
-    $this->putJson("/api/posts/{$post->id}", ['title' => 'Hacked'])
+    $this->putJson("/api/v1/posts/{$post->id}", ['title' => 'Hacked'])
         ->assertForbidden()
         ->assertJson([
             'success' => false,
@@ -243,7 +243,7 @@ test('Post owner can delete a post', function () {
 
     $post = createPostForUser($user);
 
-    $this->deleteJson("/api/posts/{$post->id}")
+    $this->deleteJson("/api/v1/posts/{$post->id}")
         ->assertNoContent();
 
     $this->assertDatabaseMissing('posts', [
@@ -259,7 +259,7 @@ test('Non-owner cannot delete a post', function () {
 
     Sanctum::actingAs($nonOwner);
 
-    $this->deleteJson("/api/posts/{$post->id}")
+    $this->deleteJson("/api/v1/posts/{$post->id}")
         ->assertForbidden()
         ->assertJson([
             'success' => false,
@@ -272,7 +272,7 @@ test('Non-owner cannot delete a post', function () {
 test('Deleting a missing post returns a not found response', function () {
     Sanctum::actingAs(User::factory()->create());
 
-    $this->deleteJson('/api/posts/999999')
+    $this->deleteJson('/api/v1/posts/999999')
         ->assertNotFound()
         ->assertJson([
             'success' => false,

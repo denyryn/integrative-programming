@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Comment;
-use App\Models\Post;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,17 +41,17 @@ test('Comments endpoints require authentication', function (string $method, stri
             'errors' => null,
         ]);
 })->with([
-            'index' => ['GET', '/api/comments', null],
-            'store' => ['POST', '/api/comments', ['comment' => 'X']],
-            'show' => ['GET', '/api/comments/{comment}', null],
-            'update' => ['PUT', '/api/comments/{comment}', ['comment' => 'Updated']],
-            'destroy' => ['DELETE', '/api/comments/{comment}', null],
+            'index' => ['GET', '/api/v1/comments', null],
+            'store' => ['POST', '/api/v1/comments', ['comment' => 'X']],
+            'show' => ['GET', '/api/v1/comments/{comment}', null],
+            'update' => ['PUT', '/api/v1/comments/{comment}', ['comment' => 'Updated']],
+            'destroy' => ['DELETE', '/api/v1/comments/{comment}', null],
         ]);
 
 test('Authenticated user cannot list comments due to policy', function () {
     Sanctum::actingAs(User::factory()->create());
 
-    $this->getJson('/api/comments')
+    $this->getJson('/api/v1/comments')
         ->assertForbidden()
         ->assertJson([
             'success' => false,
@@ -69,7 +68,7 @@ test('Authenticated user can create a comment on an existing post', function () 
     $post = createPostForUser($user);
     $payload = validCommentPayload($post->id, ['comment' => 'First!']);
 
-    $this->postJson('/api/comments', $payload)
+    $this->postJson('/api/v1/comments', $payload)
         ->assertCreated()
         ->assertJson([
             'success' => true,
@@ -88,7 +87,7 @@ test('Authenticated user can create a comment on an existing post', function () 
 test('Create comment validates input', function (array $payload, array $errorKeys) {
     Sanctum::actingAs(User::factory()->create());
 
-    $this->postJson('/api/comments', $payload)
+    $this->postJson('/api/v1/comments', $payload)
         ->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
         ->assertJson([
             'success' => false,
@@ -129,7 +128,7 @@ test('Create comment cannot assign another user_id', function () {
 
     $post = createPostForUser($user);
 
-    $this->postJson('/api/comments', validCommentPayload($post->id, [
+    $this->postJson('/api/v1/comments', validCommentPayload($post->id, [
         'comment' => 'Ownership Test',
         'user_id' => $otherUser->id,
     ]))
@@ -151,7 +150,7 @@ test('Authenticated user can view a comment', function () {
 
     Sanctum::actingAs($viewer);
 
-    $this->getJson("/api/comments/{$comment->id}")
+    $this->getJson("/api/v1/comments/{$comment->id}")
         ->assertOk()
         ->assertJson([
             'success' => true,
@@ -165,7 +164,7 @@ test('Authenticated user can view a comment', function () {
 test('Viewing a missing comment returns a not found response', function () {
     Sanctum::actingAs(User::factory()->create());
 
-    $this->getJson('/api/comments/999999')
+    $this->getJson('/api/v1/comments/999999')
         ->assertNotFound()
         ->assertJson([
             'success' => false,
@@ -182,7 +181,7 @@ test('Comment owner can update a comment', function () {
     $post = createPostForUser($user);
     $comment = createCommentForUser($user, $post->id, ['comment' => 'Old']);
 
-    $this->putJson("/api/comments/{$comment->id}", ['comment' => 'New'])
+    $this->putJson("/api/v1/comments/{$comment->id}", ['comment' => 'New'])
         ->assertOk()
         ->assertJson([
             'success' => true,
@@ -204,7 +203,7 @@ test('Update comment validates input', function () {
     $post = createPostForUser($user);
     $comment = createCommentForUser($user, $post->id);
 
-    $this->putJson("/api/comments/{$comment->id}", ['comment' => str_repeat('a', 256)])
+    $this->putJson("/api/v1/comments/{$comment->id}", ['comment' => str_repeat('a', 256)])
         ->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
         ->assertJson([
             'success' => false,
@@ -225,7 +224,7 @@ test('Non-owner cannot update a comment', function () {
 
     Sanctum::actingAs($nonOwner);
 
-    $this->putJson("/api/comments/{$comment->id}", ['comment' => 'Hacked'])
+    $this->putJson("/api/v1/comments/{$comment->id}", ['comment' => 'Hacked'])
         ->assertForbidden()
         ->assertJson([
             'success' => false,
@@ -242,7 +241,7 @@ test('Comment owner can delete a comment', function () {
     $post = createPostForUser($user);
     $comment = createCommentForUser($user, $post->id);
 
-    $this->deleteJson("/api/comments/{$comment->id}")
+    $this->deleteJson("/api/v1/comments/{$comment->id}")
         ->assertNoContent();
 
     $this->assertDatabaseMissing('comments', [
@@ -259,7 +258,7 @@ test('Non-owner cannot delete a comment', function () {
 
     Sanctum::actingAs($nonOwner);
 
-    $this->deleteJson("/api/comments/{$comment->id}")
+    $this->deleteJson("/api/v1/comments/{$comment->id}")
         ->assertForbidden()
         ->assertJson([
             'success' => false,
@@ -272,7 +271,7 @@ test('Non-owner cannot delete a comment', function () {
 test('Deleting a missing comment returns a not found response', function () {
     Sanctum::actingAs(User::factory()->create());
 
-    $this->deleteJson('/api/comments/999999')
+    $this->deleteJson('/api/v1/comments/999999')
         ->assertNotFound()
         ->assertJson([
             'success' => false,
