@@ -5,50 +5,64 @@ namespace App\Http\Controllers;
 use App\ApiResponseTrait;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
-use Illuminate\Contracts\Auth\StatefulGuard;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
     use ApiResponseTrait;
 
-    public function login(LoginRequest $request)
+    public function login(LoginRequest $request): JsonResponse
     {
         $credentials = $request->validated();
 
-        Auth::attempt($credentials);
+        $authenticated = Auth::guard('web')->attempt($credentials);
 
-        $request->session()->regenerate();
+        if (! $authenticated) {
+            return $this->errorResponse(
+                'Invalid credentials',
+                [
+                    'email' => ['The provided credentials are incorrect.'],
+                ],
+                Response::HTTP_UNPROCESSABLE_ENTITY
+            );
+        }
+
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
 
         return $this->successResponse(
-            auth()->user(),
+            Auth::guard('web')->user(),
             'Logged in successfully',
             Response::HTTP_OK
         );
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return $this->successResponse(
             null,
             'Logged out successfully',
-            Response::HTTP_NO_CONTENT
+            Response::HTTP_OK
         );
     }
 
-    public function register(RegisterRequest $request)
+    public function register(RegisterRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
-        $user = \App\Models\User::create($validated);
+        $user = User::create($validated);
 
         return $this->successResponse(
             $user,
