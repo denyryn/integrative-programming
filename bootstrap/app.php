@@ -12,9 +12,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -25,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 
-        $exceptions->shouldRenderJsonWhen(fn ($request, $e) => $request->is('api/*', 'auth/*'));
+        $exceptions->shouldRenderJsonWhen(fn($request, $e) => $request->is('api/*', 'auth/*'));
 
         $exceptions->respond(function ($response, $e, $request) {
             if ($request->is('api/*', 'auth/*')) {
@@ -44,7 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'success' => false,
                     'message' => $message,
                     'data' => null,
-                    'errors' => ($e instanceof ValidationException) ? $e->errors() : null,
+                    'errors' => method_exists($e, 'errors') ? $e->errors() : null,
                 ], $response->getStatusCode());
             }
 
