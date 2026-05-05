@@ -96,7 +96,7 @@ class PostController extends Controller
         return $this->successResponse(
             null,
             'Post deleted successfully',
-            Response::HTTP_NO_CONTENT
+            Response::HTTP_OK
         );
     }
 }

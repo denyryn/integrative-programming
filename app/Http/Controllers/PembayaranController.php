@@ -94,7 +94,7 @@ class PembayaranController extends Controller
         return $this->successResponse(
             null,
             "Data Pembayaran Berhasil Dihapus",
-            Response::HTTP_NO_CONTENT
+            Response::HTTP_OK
         );
     }
 }
