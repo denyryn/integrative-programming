@@ -104,7 +104,7 @@ class CommentController extends Controller
         return $this->successResponse(
             null,
             'Comment deleted successfully',
-            Response::HTTP_NO_CONTENT
+            Response::HTTP_OK
         );
     }
 }

@@ -93,7 +93,7 @@ class AnggotaController extends Controller
         return $this->successResponse(
             null,
             "Data Anggota Berhasil Dihapus",
-            Response::HTTP_NO_CONTENT
+            Response::HTTP_OK
         );
     }
 }

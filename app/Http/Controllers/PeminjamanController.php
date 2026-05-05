@@ -93,7 +93,7 @@ class PeminjamanController extends Controller
         return $this->successResponse(
             null,
             "Data Peminjaman Berhasil Dihapus",
-            Response::HTTP_NO_CONTENT
+            Response::HTTP_OK
         );
     }
 }
