@@ -17,3 +17,12 @@ Route::prefix('v1')->group(function () {
             ->only(['index', 'store', 'show', 'update', 'destroy']);
     });
 });
+
+Route::prefix('')->group(function () {
+    Route::resource('anggota', \App\Http\Controllers\AnggotaController::class)
+        ->only(['index', 'store', 'show', 'update', 'destroy']);
+    Route::resource('peminjaman', \App\Http\Controllers\PeminjamanController::class)
+        ->only(['index', 'store', 'show', 'update', 'destroy']);
+    Route::resource('pembayaran', \App\Http\Controllers\PembayaranController::class)
+        ->only(['index', 'store', 'show', 'update', 'destroy']);
+});
