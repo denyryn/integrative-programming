@@ -11,15 +11,12 @@ trait ApiResponseTrait
         string $message = 'Success',
         int $status = 200
     ): JsonResponse {
-        if (is_null($data)) {
-            return response()->json([
-                'message' => $message,
-            ], $status);
-        }
 
         return response()->json([
+            'success' => true,
             'message' => $message,
             'data' => $data,
+            'errors' => null,
         ], $status);
     }
 
