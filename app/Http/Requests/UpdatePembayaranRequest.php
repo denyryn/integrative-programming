@@ -23,7 +23,7 @@ class UpdatePembayaranRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "peminjaman_id" => "sometimes|exists:peminjamen,id",
+            "peminjaman_id" => "sometimes|exists:peminjamans,id",
             "tanggal_pembayaran" => "sometimes|date",
             "jumlah_pembayaran" => "sometimes|integer|min:1",
         ];
