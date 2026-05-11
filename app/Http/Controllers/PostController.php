@@ -5,24 +5,31 @@ namespace App\Http\Controllers;
 use App\ApiResponseTrait;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
+use App\Http\Resources\PostResource;
 use App\Models\Post;
+use App\Models\User;
+use App\Services\PostService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class PostController extends Controller
 {
-
     use ApiResponseTrait, AuthorizesRequests;
+
+    public function __construct(private readonly PostService $postService)
+    {
+    }
 
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $posts = Post::paginate(5);
+        $posts = $this->postService->paginatePosts(5);
+
         return $this->successResponse(
-            \App\Http\Resources\PostResource::collection($posts)->response()->getData(true),
+            PostResource::collection($posts)->response()->getData(true),
             'Posts retrieved successfully',
             Response::HTTP_OK
         );
@@ -42,9 +49,14 @@ class PostController extends Controller
     public function store(StorePostRequest $request)
     {
         $validated = $request->validated();
-        $post = auth()->user()->posts()->create($validated);
+
+        $user = $request->user();
+        abort_unless($user instanceof User, Response::HTTP_UNAUTHORIZED);
+
+        $post = $this->postService->createPost($user, $validated);
+
         return $this->successResponse(
-            \App\Http\Resources\PostResource::make($post),
+            PostResource::make($post),
             'Post created successfully',
             Response::HTTP_CREATED
         );
@@ -56,8 +68,11 @@ class PostController extends Controller
     public function show(Post $post)
     {
         $this->authorize('view', $post);
+
+        $post = $this->postService->getPost($post);
+
         return $this->successResponse(
-            \App\Http\Resources\PostResource::make($post),
+            PostResource::make($post),
             'Post retrieved successfully',
             Response::HTTP_OK
         );
@@ -78,9 +93,11 @@ class PostController extends Controller
     {
         $this->authorize('update', $post);
         $validated = $request->validated();
-        $post->update($validated);
+
+        $post = $this->postService->updatePost($post, $validated);
+
         return $this->successResponse(
-            \App\Http\Resources\PostResource::make($post),
+            PostResource::make($post),
             'Post updated successfully',
             Response::HTTP_OK
         );
@@ -92,11 +109,9 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         $this->authorize('delete', $post);
-        $post->delete();
-        return $this->successResponse(
-            null,
-            'Post deleted successfully',
-            Response::HTTP_OK
-        );
+
+        $this->postService->deletePost($post);
+
+        return response()->noContent(HttpResponse::HTTP_NO_CONTENT);
     }
 }

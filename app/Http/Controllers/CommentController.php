@@ -7,12 +7,19 @@ use App\Http\Requests\StoreCommentRequest;
 use App\Http\Requests\UpdateCommentRequest;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
+use App\Models\User;
+use App\Services\CommentService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Response as HttpResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class CommentController extends Controller
 {
     use ApiResponseTrait, AuthorizesRequests;
+
+    public function __construct(private readonly CommentService $commentService)
+    {
+    }
 
     /**
      * Display a listing of the resource.
@@ -21,7 +28,7 @@ class CommentController extends Controller
     {
         $this->authorize('viewAny', Comment::class);
 
-        $comments = Comment::paginate(5);
+        $comments = $this->commentService->paginateComments(5);
 
         return $this->successResponse(
             CommentResource::collection($comments)->response()->getData(true),
@@ -46,7 +53,11 @@ class CommentController extends Controller
         $this->authorize('create', Comment::class);
 
         $validated = $request->validated();
-        $comment = auth()->user()->comments()->create($validated);
+
+        $user = $request->user();
+        abort_unless($user instanceof User, Response::HTTP_UNAUTHORIZED);
+
+        $comment = $this->commentService->createComment($user, $validated);
 
         return $this->successResponse(
             CommentResource::make($comment),
@@ -61,6 +72,8 @@ class CommentController extends Controller
     public function show(Comment $comment)
     {
         $this->authorize('view', $comment);
+
+        $comment = $this->commentService->getComment($comment);
 
         return $this->successResponse(
             CommentResource::make($comment),
@@ -84,7 +97,8 @@ class CommentController extends Controller
     {
         $this->authorize('update', $comment);
         $validated = $request->validated();
-        $comment->update($validated);
+
+        $comment = $this->commentService->updateComment($comment, $validated);
 
         return $this->successResponse(
             CommentResource::make($comment),
@@ -99,12 +113,9 @@ class CommentController extends Controller
     public function destroy(Comment $comment)
     {
         $this->authorize('delete', $comment);
-        $comment->delete();
 
-        return $this->successResponse(
-            null,
-            'Comment deleted successfully',
-            Response::HTTP_OK
-        );
+        $this->commentService->deleteComment($comment);
+
+        return response()->noContent(HttpResponse::HTTP_NO_CONTENT);
     }
 }
