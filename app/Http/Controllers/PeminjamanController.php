@@ -56,7 +56,7 @@ class PeminjamanController extends Controller
     {
         return $this->successResponse(
             $peminjaman,
-            Response::HTTP_OK
+            "Data Peminjaman Berhasil Ditemukan",
         );
     }
 

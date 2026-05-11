@@ -57,7 +57,7 @@ class PembayaranController extends Controller
     {
         return $this->successResponse(
             $pembayaran,
-            Response::HTTP_OK
+            "Data Peminjaman Berhasil Ditemukan",
         );
     }
 

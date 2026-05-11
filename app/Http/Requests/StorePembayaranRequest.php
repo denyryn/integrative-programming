@@ -23,7 +23,7 @@ class StorePembayaranRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "peminjaman_id" => "required|exists:peminjamen,id",
+            "peminjaman_id" => "required|exists:peminjamans,id",
             "tanggal_pembayaran" => "required|date",
             "jumlah_pembayaran" => "required|integer|min:1",
         ];

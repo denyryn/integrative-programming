@@ -20,9 +20,12 @@ Route::prefix('v1')->group(function () {
 
 Route::prefix('')->group(function () {
     Route::resource('anggota', \App\Http\Controllers\AnggotaController::class)
-        ->only(['index', 'store', 'show', 'update', 'destroy']);
+        ->only(['index', 'store', 'show', 'update', 'destroy'])
+        ->parameters(['anggota' => 'anggota']);
     Route::resource('peminjaman', \App\Http\Controllers\PeminjamanController::class)
-        ->only(['index', 'store', 'show', 'update', 'destroy']);
+        ->only(['index', 'store', 'show', 'update', 'destroy'])
+        ->parameters(['peminjaman' => 'peminjaman']);
     Route::resource('pembayaran', \App\Http\Controllers\PembayaranController::class)
-        ->only(['index', 'store', 'show', 'update', 'destroy']);
+        ->only(['index', 'store', 'show', 'update', 'destroy'])
+        ->parameters(['pembayaran' => 'pembayaran']);
 });

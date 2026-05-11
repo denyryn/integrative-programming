@@ -57,7 +57,7 @@ class AnggotaController extends Controller
     {
         return $this->successResponse(
             $anggota,
-            Response::HTTP_OK
+            "Data Anggota Berhasil Ditemukan",
         );
     }
 
